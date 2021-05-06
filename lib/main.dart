@@ -22,17 +22,15 @@ class AirQualityApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Air Quality App',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home:
-            // FirebaseAuth.instance.currentUser == null
-            // ?
-            LoginPage()
-        // : MyHomePage(title: 'My Air'),
-        );
+      debugShowCheckedModeBanner: false,
+      title: 'Air Quality App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: FirebaseAuth.instance.currentUser == null
+          ? LoginPage()
+          : MyHomePage(title: 'My Air'),
+    );
   }
 }
 
