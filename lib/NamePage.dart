@@ -53,6 +53,11 @@ class NamePageState extends State<NamePage> {
             ),
             TextButton(
               style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all<Color>(
+                  Color(
+                    0xffffffff,
+                  ),
+                ),
                 backgroundColor: MaterialStateProperty.all<Color>(
                   Color(
                     0xff00C6BD,
