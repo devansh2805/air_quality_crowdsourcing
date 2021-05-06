@@ -10,6 +10,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:http/http.dart' as http;
 import 'package:air_quality_app/keys.dart' as keys;
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +27,9 @@ class AirQualityApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(),
+      home: FirebaseAuth.instance.currentUser == null
+          ? LoginPage()
+          : MyHomePage(title: 'My Air'),
     );
   }
 }

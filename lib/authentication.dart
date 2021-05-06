@@ -1,7 +1,8 @@
-import 'package:air_quality_app/main.dart';
+import 'package:air_quality_app/NamePage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class Auth {
   Future<void> loginUser(String phoneNumber, BuildContext context) async {
@@ -17,11 +18,22 @@ class Auth {
           User user = userCredential.user;
           if (user != null) {
             Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => MyHomePage(title: 'My Air')));
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return NamePage();
+                },
+              ),
+            );
           } else {
-            print("Error");
+            Fluttertoast.showToast(
+              msg: "Authentication Error",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
           }
         },
         verificationFailed: (FirebaseAuthException authException) {
@@ -48,21 +60,35 @@ class Auth {
                         final code = _codeController.text.trim();
                         AuthCredential credential =
                             PhoneAuthProvider.credential(
-                                verificationId: verificationId, smsCode: code);
+                          verificationId: verificationId,
+                          smsCode: code,
+                        );
                         UserCredential userCredential =
                             await _auth.signInWithCredential(credential);
                         User user = userCredential.user;
                         if (user != null) {
                           Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      MyHomePage(title: 'My Air')));
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return NamePage();
+                              },
+                            ),
+                          );
                         } else {
-                          print("Error");
+                          Fluttertoast.showToast(
+                            msg: "Authentication Error",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.CENTER,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                            fontSize: 16.0,
+                          );
                         }
                       },
-                      child: Text("Confirm"),
+                      child: Text(
+                        "Confirm",
+                      ),
                     )
                   ],
                 );
