@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:air_quality_app/login.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
@@ -25,7 +26,7 @@ class AirQualityApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'My Air'),
+      home: LoginPage(),
     );
   }
 }

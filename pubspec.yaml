@@ -36,6 +36,9 @@ dependencies:
   syncfusion_flutter_gauges: ^18.4.48+1
   slimy_card: ^1.0.4
   http: ^0.13.1
+  google_fonts: ^2.0.0
+  intl_phone_field: ^1.4.4
+  firebase_auth: ^1.0.1
 
 
 dev_dependencies:
