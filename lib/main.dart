@@ -84,6 +84,26 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     getPosition();
     timer = Timer.periodic(Duration(seconds: 10), (Timer t) => getData());
+    fetchCrowdsourcedData();
+  }
+
+  void fetchCrowdsourcedData() async {
+    databaseReference
+        .orderByChild("timestamp")
+        .startAt(DateTime.now().subtract(const Duration(hours: 1)).toString())
+        // .orderByChild("lat")
+        // .startAt(double.parse(lat) - 0.005)
+        // .endAt(double.parse(lat) + 0.005)
+        // .orderByChild("long")
+        // .startAt(double.parse(long) - 0.005)
+        // .endAt(double.parse(long) + 0.005)
+        .once()
+        .then((value) {
+      Map<dynamic, dynamic> snaps = value.value;
+      snaps.forEach((key, value1) {
+        print(value1);
+      });
+    });
   }
 
   Future<AQI> fetchAQI() async {
