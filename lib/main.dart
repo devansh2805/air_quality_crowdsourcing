@@ -136,38 +136,18 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text(
-              "GPS Service Disabled",
-            ),
-            content: Text(
-              "Location Service is Disabled\nPlease Turn on Location Services",
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () async {
-                  if (!await Geolocator.openLocationSettings()) {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          content: Text(
-                            "Cannot open Location Settings, Please turn then on manually",
-                          ),
-                        );
-                      },
-                    );
-                  }
-                },
-                child: Text("Turn On"),
-              )
-            ],
-          );
-        },
-      );
+      if (!await Geolocator.openLocationSettings()) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              content: Text(
+                "Cannot open Location Settings, Please turn then on manually",
+              ),
+            );
+          },
+        );
+      }
     }
     return await Geolocator.getCurrentPosition();
   }
@@ -482,7 +462,7 @@ class _MyHomePageState extends State<MyHomePage> {
         30,
         20,
         30,
-        30,
+        20,
       ),
       decoration: BoxDecoration(
           color: Color(0xfff2f4fb),
@@ -491,7 +471,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           Text("PM Values from OpenWeatherMap API"),
           SizedBox(
-            height: 20,
+            height: 5,
           ),
           if (pm25G != null)
             Column(
