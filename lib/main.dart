@@ -194,8 +194,13 @@ class _MyHomePageState extends State<MyHomePage> {
               pm10 = obj["PM10"];
               timestamp = obj["timestamp"];
               aqiValue = double.parse(obj["AQI"]);
-              obj.addAll({"lat": lat, "long": long});
-              print(obj);
+              obj.addAll({
+                "lat": lat,
+                "long": long,
+                "uid": FirebaseAuth.instance.currentUser.uid,
+                "pm2_5_fromApi": pm25G,
+                "pm10_fromApi": pm10G,
+              });
               databaseReference.push().set(obj);
               setState(
                 () {
@@ -204,11 +209,27 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               );
               print(pidata);
+              return;
             },
           );
         },
       ).catchError((onError) {});
     }
+    Map<String, dynamic> obj = Map<String, dynamic>();
+    obj.addAll(
+      {
+        "AQI": 0,
+        "PM2_5": 0,
+        "PM10": 0,
+        "lat": lat,
+        "long": long,
+        "uid": FirebaseAuth.instance.currentUser.uid,
+        "pm2_5_fromApi": pm25G,
+        "pm10_fromApi": pm10G,
+        "timestamp": DateTime.now().toString(),
+      },
+    );
+    databaseReference.push().set(obj);
   }
 
   Widget topCardWidget() {
