@@ -13,7 +13,20 @@ class NamePage extends StatefulWidget {
 }
 
 class NamePageState extends State<NamePage> {
-  TextEditingController _nameController = TextEditingController();
+  TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _nameController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
