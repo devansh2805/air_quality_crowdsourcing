@@ -120,21 +120,54 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
     LocationPermission locationPermission;
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
     locationPermission = await Geolocator.checkPermission();
     if (locationPermission == LocationPermission.denied) {
       locationPermission = await Geolocator.requestPermission();
       if (locationPermission == LocationPermission.deniedForever) {
         return Future.error(
-            'Location permissions are permanently denied, we cannot request permissions.');
+          'Location permissions are permanently denied, we cannot request permissions.',
+        );
       }
       if (locationPermission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied');
+        return Future.error(
+          'Location permissions are denied',
+        );
       }
+    }
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(
+              "GPS Service Disabled",
+            ),
+            content: Text(
+              "Location Service is Disabled\nPlease Turn on Location Services",
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () async {
+                  if (!await Geolocator.openLocationSettings()) {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          content: Text(
+                            "Cannot open Location Settings, Please turn then on manually",
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
+                child: Text("Turn On"),
+              )
+            ],
+          );
+        },
+      );
     }
     return await Geolocator.getCurrentPosition();
   }
