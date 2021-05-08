@@ -72,6 +72,7 @@ unlinked_spec.ds
 
 # Keys
 **/lib/keys.dart
+secrets.properties
 
 # iOS/XCode related
 **/ios/**/*.mode1v3

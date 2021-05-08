@@ -13,6 +13,8 @@ import 'package:http/http.dart' as http;
 import 'package:air_quality_app/keys.dart' as keys;
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'MapPage.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -81,11 +83,25 @@ class _MyHomePageState extends State<MyHomePage> {
   String dt = "";
   List aqiValues = [];
   double avg;
+  String userName = "";
 
   void initState() {
     super.initState();
     getPosition();
+    fetchUserName();
     timer = Timer.periodic(Duration(seconds: 10), (Timer t) => getData());
+  }
+
+  void fetchUserName() {
+    FirebaseFirestore.instance
+        .collection("users")
+        .doc(FirebaseAuth.instance.currentUser.uid)
+        .get()
+        .then((value) {
+      setState(() {
+        userName = value.data()["name"];
+      });
+    });
   }
 
   void fetchCrowdsourcedData() async {
@@ -105,7 +121,6 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     });
     avg = aqiValues.reduce((dynamic a, dynamic b) => a + b) / aqiValues.length;
-    print(avg);
   }
 
   Future<AQI> fetchAQI() async {
@@ -635,6 +650,33 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         backgroundColor: Color(0xff00C6BD),
       ),
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            DrawerHeader(
+              child: Text(
+                userName,
+              ),
+            ),
+            ListTile(
+              title: Text(
+                "Map for AQI",
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MapPage(
+                      GeoPoint(double.parse(lat), double.parse(long)),
+                      avg,
+                    ),
+                  ),
+                );
+              },
+            )
+          ],
+        ),
+      ),
       body: Column(
         children: [
           SizedBox(
@@ -653,14 +695,7 @@ class _MyHomePageState extends State<MyHomePage> {
             height: 30,
           ),
           topCardWidget(),
-          bottomCardWidget()
-          // SlimyCard(
-          //   width: 350,
-          //   topCardHeight: 350,
-          //   color: Color(0xfff2f4fb),
-          //   topCardWidget: topCardWidget(),
-          //   bottomCardWidget: bottomCardWidget(),
-          // ),
+          bottomCardWidget(),
         ],
       ),
     );
