@@ -5,7 +5,7 @@ import 'package:air_quality_app/login.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:http/http.dart' as http;
@@ -39,11 +39,13 @@ class AQI {
   var pm10;
   var aqi;
   var dt;
-  AQI(
-      {@required this.pm25,
-      @required this.pm10,
-      @required this.aqi,
-      @required this.dt});
+
+  AQI({
+    @required this.pm25,
+    @required this.pm10,
+    @required this.aqi,
+    @required this.dt,
+  });
 
   factory AQI.fromJSON(Map<String, dynamic> json) {
     return AQI(
@@ -67,42 +69,39 @@ class _MyHomePageState extends State<MyHomePage> {
   Timer timer;
   String currentAddress = " ";
   String pidata = " ";
-  String pm2 = " ";
+  String pm25 = " ";
   String pm10 = " ";
   String lat = " ";
   String long = " ";
   String timestamp = " ";
-  bool flag = false;
   Future<AQI> futureAQI;
-  String aqi;
   String pm25G;
   String pm10G;
-  String dt;
-  final databaseReference = FirebaseDatabase.instance.reference();
+  String dt = "";
 
-  void initState() {
+  void initState() async {
     super.initState();
-    getPosition();
     timer = Timer.periodic(Duration(seconds: 10), (Timer t) => getData());
     fetchCrowdsourcedData();
   }
 
   void fetchCrowdsourcedData() async {
-    databaseReference
-        .orderByChild("timestamp")
-        .startAt(DateTime.now().subtract(const Duration(hours: 1)).toString())
-        // .orderByChild("lat")
-        // .startAt(double.parse(lat) - 0.005)
-        // .endAt(double.parse(lat) + 0.005)
-        // .orderByChild("long")
-        // .startAt(double.parse(long) - 0.005)
-        // .endAt(double.parse(long) + 0.005)
-        .once()
-        .then((value) {
-      Map<dynamic, dynamic> snaps = value.value;
-      snaps.forEach((key, value1) {
-        print(value1);
-      });
+    await getPosition();
+    setState(() {})
+    Query query = FirebaseFirestore.instance
+        .collection("aqidata")
+        .where("TIMESTAMP",
+            isGreaterThanOrEqualTo:
+                DateTime.now().subtract(const Duration(hours: 1)))
+        .where("GEOPOINT",
+            isLessThanOrEqualTo:
+                GeoPoint(double.parse(lat) + 0.001, double.parse(long) + 0.001))
+        .where("GEOPOINT",
+            isGreaterThanOrEqualTo:
+                GeoPoint(double.parse(lat) - 0.001, double.parse(long) - 0.001))
+        .limit(1000);
+    query.snapshots().forEach((element) {
+      print(element.toString());
     });
   }
 
@@ -124,10 +123,12 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void getPosition() async {
+  Future<void> getPosition() async {
     Position pos = await _determinePosition();
-    List<Placemark> placemarks =
-        await placemarkFromCoordinates(pos.latitude, pos.longitude);
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+      pos.latitude,
+      pos.longitude,
+    );
     Placemark place = placemarks[0];
     setState(
       () {
@@ -199,33 +200,39 @@ class _MyHomePageState extends State<MyHomePage> {
       futureAQI.then((value) {
         pm25G = value.pm25.toString();
         pm10G = value.pm10.toString();
-        dt = DateTime.fromMicrosecondsSinceEpoch(value.dt).toString();
+        dt = DateTime.fromMillisecondsSinceEpoch(value.dt * 1000).toString();
       });
     });
-    var data = "192.168.43.1".split('.');
-    String ipPrefix = data[0] + '.' + data[1] + '.' + data[2];
+    var ipAddress = "192.168.43.1".split('.');
+    String ipPrefix = ipAddress[0] + '.' + ipAddress[1] + '.' + ipAddress[2];
     for (var i = 0; i <= 255; i++) {
       Socket.connect(ipPrefix + '.' + (i.toString()), 5020).then(
         (Socket socket) {
           socket.listen(
             (event) {
-              Map<String, dynamic> obj = jsonDecode(utf8.decode(event));
-              pm2 = obj["PM2_5"];
-              pm10 = obj["PM10"];
-              timestamp = obj["timestamp"];
-              aqiValue = double.parse(obj["AQI"]);
-              obj.addAll({
-                "lat": lat,
-                "long": long,
-                "uid": FirebaseAuth.instance.currentUser.uid,
-                "pm2_5_fromApi": pm25G,
-                "pm10_fromApi": pm10G,
+              Map<String, dynamic> dataObject = jsonDecode(utf8.decode(event));
+              pm25 = dataObject["PM2_5"];
+              dataObject.remove("PM@_5");
+              pm10 = dataObject["PM10"];
+              dataObject.remove("PM10");
+              timestamp = dataObject["timestamp"];
+              dataObject.remove("timestamp");
+              aqiValue = double.parse(dataObject["AQI"]);
+              dataObject.remove("AQI");
+              dataObject.addAll({
+                "AQI": aqiValue,
+                "PM2_5": double.parse(pm25),
+                "PM10": double.parse(pm10),
+                "GEOPOINT": GeoPoint(double.parse(lat), double.parse(long)),
+                "UID": FirebaseAuth.instance.currentUser.uid,
+                "PM2_5_API": double.parse(pm25G),
+                "PM10_API": double.parse(pm10G),
+                "TIMESTAMP": DateTime.parse(timestamp),
               });
-              databaseReference.push().set(obj);
+              FirebaseFirestore.instance.collection("aqidata").add(dataObject);
               setState(
                 () {
                   pidata = utf8.decode(event) + " " + lat + " " + long;
-                  flag = true;
                 },
               );
               print(pidata);
@@ -235,21 +242,20 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       ).catchError((onError) {});
     }
-    Map<String, dynamic> obj = Map<String, dynamic>();
-    obj.addAll(
+    Map<String, dynamic> dataObject = Map<String, dynamic>();
+    dataObject.addAll(
       {
-        "AQI": 0,
-        "PM2_5": 0,
-        "PM10": 0,
-        "lat": lat,
-        "long": long,
-        "uid": FirebaseAuth.instance.currentUser.uid,
-        "pm2_5_fromApi": pm25G,
-        "pm10_fromApi": pm10G,
-        "timestamp": DateTime.now().toString(),
+        "AQI": 0.0,
+        "PM2_5": 0.0,
+        "PM10": 0.0,
+        "GEOPOINT": GeoPoint(double.parse(lat), double.parse(long)),
+        "UID": FirebaseAuth.instance.currentUser.uid,
+        "PM2_5_API": double.parse(pm25G),
+        "PM10_API": double.parse(pm10G),
+        "TIMESTAMP": dt != "" ? DateTime.parse(dt) : DateTime.now(),
       },
     );
-    databaseReference.push().set(obj);
+    FirebaseFirestore.instance.collection("aqidata").add(dataObject);
   }
 
   Widget topCardWidget() {
@@ -434,7 +440,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           TextStyle(fontWeight: FontWeight.w100, fontSize: 20),
                     ),
                     Text(
-                      '$pm2',
+                      '$pm25',
                       style:
                           TextStyle(fontWeight: FontWeight.w300, fontSize: 20),
                     ),
