@@ -82,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String pm10G;
   String dt = "";
   List aqiValues = [];
-  double avg;
+  double avg = 0;
   String userName = "";
 
   void initState() {
@@ -90,6 +90,8 @@ class _MyHomePageState extends State<MyHomePage> {
     getPosition();
     fetchUserName();
     timer = Timer.periodic(Duration(seconds: 10), (Timer t) => getData());
+    setState(() {});
+    print(lat);
   }
 
   void fetchUserName() {
@@ -119,8 +121,9 @@ class _MyHomePageState extends State<MyHomePage> {
             .isAfter(DateTime.now().subtract(const Duration(hours: 1))))
           aqiValues.add(element.data()["AQI"]);
       });
+      avg =
+          aqiValues.reduce((dynamic a, dynamic b) => a + b) / aqiValues.length;
     });
-    avg = aqiValues.reduce((dynamic a, dynamic b) => a + b) / aqiValues.length;
   }
 
   Future<AQI> fetchAQI() async {

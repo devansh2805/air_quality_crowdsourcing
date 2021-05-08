@@ -30,6 +30,7 @@ class MapPageState extends State<MapPage> {
   }
 
   void initialiseMarker() {
+    print(userLocation.latitude);
     markers.add(
       Marker(
         position: LatLng(
@@ -58,7 +59,7 @@ class MapPageState extends State<MapPage> {
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
         },
-        markers: Set<Marker>.of(markers),
+        // markers: Set<Marker>.of(markers),
       ),
     );
   }
