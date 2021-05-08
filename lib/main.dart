@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:air_quality_app/login.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -78,31 +79,33 @@ class _MyHomePageState extends State<MyHomePage> {
   String pm25G;
   String pm10G;
   String dt = "";
+  List aqiValues = [];
+  double avg;
 
-  void initState() async {
+  void initState() {
     super.initState();
+    getPosition();
     timer = Timer.periodic(Duration(seconds: 10), (Timer t) => getData());
-    fetchCrowdsourcedData();
   }
 
   void fetchCrowdsourcedData() async {
-    await getPosition();
-    setState(() {})
-    Query query = FirebaseFirestore.instance
+    FirebaseFirestore.instance
         .collection("aqidata")
-        .where("TIMESTAMP",
-            isGreaterThanOrEqualTo:
-                DateTime.now().subtract(const Duration(hours: 1)))
         .where("GEOPOINT",
             isLessThanOrEqualTo:
-                GeoPoint(double.parse(lat) + 0.001, double.parse(long) + 0.001))
-        .where("GEOPOINT",
+                GeoPoint(double.parse(lat) + 0.005, double.parse(long) + 0.005),
             isGreaterThanOrEqualTo:
-                GeoPoint(double.parse(lat) - 0.001, double.parse(long) - 0.001))
-        .limit(1000);
-    query.snapshots().forEach((element) {
-      print(element.toString());
+                GeoPoint(double.parse(lat) - 0.005, double.parse(long) - 0.005))
+        .get()
+        .then((value) {
+      value.docs.forEach((element) {
+        if ((element.data()["TIMESTAMP"].toDate())
+            .isAfter(DateTime.now().subtract(const Duration(hours: 1))))
+          aqiValues.add(element.data()["AQI"]);
+      });
     });
+    avg = aqiValues.reduce((dynamic a, dynamic b) => a + b) / aqiValues.length;
+    print(avg);
   }
 
   Future<AQI> fetchAQI() async {
@@ -245,17 +248,18 @@ class _MyHomePageState extends State<MyHomePage> {
     Map<String, dynamic> dataObject = Map<String, dynamic>();
     dataObject.addAll(
       {
-        "AQI": 0.0,
+        "AQI": double.parse((Random().nextDouble() * 200).toStringAsFixed(3)),
         "PM2_5": 0.0,
         "PM10": 0.0,
         "GEOPOINT": GeoPoint(double.parse(lat), double.parse(long)),
         "UID": FirebaseAuth.instance.currentUser.uid,
         "PM2_5_API": double.parse(pm25G),
         "PM10_API": double.parse(pm10G),
-        "TIMESTAMP": dt != "" ? DateTime.parse(dt) : DateTime.now(),
+        "TIMESTAMP": DateTime.now(),
       },
     );
     FirebaseFirestore.instance.collection("aqidata").add(dataObject);
+    fetchCrowdsourcedData();
   }
 
   Widget topCardWidget() {
