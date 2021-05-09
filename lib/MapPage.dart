@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class MapPage extends StatefulWidget {
   GeoPoint userLocation;
   double airQualityIndex;
+
   MapPage(GeoPoint location, double aqi) {
     userLocation = location;
     airQualityIndex = aqi;
@@ -33,14 +34,15 @@ class MapPageState extends State<MapPage> {
     print(userLocation.latitude);
     markers.add(
       Marker(
+        draggable: false,
         position: LatLng(
           userLocation.latitude,
           userLocation.longitude,
         ),
         infoWindow: InfoWindow(
-          title: airQualityIndex.toString(),
+          title: "AQI: " + airQualityIndex.toStringAsFixed(2),
         ),
-        markerId: null,
+        markerId: MarkerId("marker1"),
       ),
     );
   }
@@ -49,17 +51,19 @@ class MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: GoogleMap(
-        mapType: MapType.satellite,
+        mapType: MapType.normal,
         initialCameraPosition: CameraPosition(
           target: LatLng(
             userLocation.latitude,
             userLocation.longitude,
           ),
+          zoom: 15.0,
         ),
         onMapCreated: (GoogleMapController controller) {
           _controller.complete(controller);
         },
-        // markers: Set<Marker>.of(markers),
+        markers: Set<Marker>.of(markers),
+        zoomGesturesEnabled: true,
       ),
     );
   }

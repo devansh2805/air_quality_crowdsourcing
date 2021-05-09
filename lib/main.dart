@@ -69,29 +69,26 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   double aqiValue = 0.0;
+  double crowdSourcedAQI = 0;
   Timer timer;
-  String currentAddress = " ";
-  String pidata = " ";
-  String pm25 = " ";
-  String pm10 = " ";
-  String lat = " ";
-  String long = " ";
-  String timestamp = " ";
+  String currentAddress = "",
+      pm25 = "",
+      pm10 = "",
+      lat = "",
+      long = "",
+      timestamp = "",
+      pm25G,
+      pm10G,
+      dt = "",
+      userName = "";
   Future<AQI> futureAQI;
-  String pm25G;
-  String pm10G;
-  String dt = "";
   List aqiValues = [];
-  double avg = 0;
-  String userName = "";
 
   void initState() {
     super.initState();
     getPosition();
     fetchUserName();
     timer = Timer.periodic(Duration(seconds: 10), (Timer t) => getData());
-    setState(() {});
-    print(lat);
   }
 
   void fetchUserName() {
@@ -121,8 +118,13 @@ class _MyHomePageState extends State<MyHomePage> {
             .isAfter(DateTime.now().subtract(const Duration(hours: 1))))
           aqiValues.add(element.data()["AQI"]);
       });
-      avg =
-          aqiValues.reduce((dynamic a, dynamic b) => a + b) / aqiValues.length;
+      if (aqiValues.length != 0) {
+        crowdSourcedAQI = aqiValues.reduce((dynamic a, dynamic b) => a + b) /
+            aqiValues.length;
+        aqiValues = [];
+      } else {
+        crowdSourcedAQI = 0.0;
+      }
     });
   }
 
@@ -251,12 +253,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 "TIMESTAMP": DateTime.parse(timestamp),
               });
               FirebaseFirestore.instance.collection("aqidata").add(dataObject);
-              setState(
-                () {
-                  pidata = utf8.decode(event) + " " + lat + " " + long;
-                },
-              );
-              print(pidata);
               return;
             },
           );
@@ -266,7 +262,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Map<String, dynamic> dataObject = Map<String, dynamic>();
     dataObject.addAll(
       {
-        "AQI": double.parse((Random().nextDouble() * 200).toStringAsFixed(3)),
+        "AQI": double.parse((Random().nextDouble() * 500).toStringAsFixed(3)),
         "PM2_5": 0.0,
         "PM10": 0.0,
         "GEOPOINT": GeoPoint(double.parse(lat), double.parse(long)),
@@ -282,18 +278,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget topCardWidget() {
     return Container(
-      margin: EdgeInsets.fromLTRB(
-        40,
-        0,
-        40,
-        0,
-      ),
-      padding: EdgeInsets.fromLTRB(
-        30,
-        20,
-        30,
-        20,
-      ),
+      margin: EdgeInsets.fromLTRB(40, 0, 40, 0),
+      padding: EdgeInsets.fromLTRB(30, 20, 30, 20),
       decoration: BoxDecoration(
         color: Color(
           0xfff2f4fb,
@@ -521,18 +507,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget bottomCardWidget() {
     return Container(
-      margin: EdgeInsets.fromLTRB(
-        40,
-        20,
-        40,
-        0,
-      ),
-      padding: EdgeInsets.fromLTRB(
-        30,
-        20,
-        30,
-        20,
-      ),
+      margin: EdgeInsets.fromLTRB(40, 20, 40, 0),
+      padding: EdgeInsets.fromLTRB(30, 20, 30, 20),
       decoration: BoxDecoration(
           color: Color(0xfff2f4fb),
           borderRadius: BorderRadius.all(Radius.circular(20))),
@@ -653,53 +629,51 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         backgroundColor: Color(0xff00C6BD),
       ),
-      drawer: Drawer(
-        child: ListView(
+      body: SingleChildScrollView(
+        child: Column(
           children: [
-            DrawerHeader(
+            SizedBox(
+              height: 20,
+            ),
+            Container(
               child: Text(
-                userName,
+                '$currentAddress',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w100,
+                  color: Color(0xff848484),
+                ),
               ),
             ),
-            ListTile(
-              title: Text(
-                "Map for AQI",
+            SizedBox(
+              height: 30,
+            ),
+            topCardWidget(),
+            bottomCardWidget(),
+            SizedBox(
+              height: 30,
+            ),
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(Color(0xff00C6BD)),
+                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
               ),
-              onTap: () {
+              onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => MapPage(
                       GeoPoint(double.parse(lat), double.parse(long)),
-                      avg,
+                      crowdSourcedAQI,
                     ),
                   ),
                 );
               },
-            )
+              child: Text("Open Map"),
+            ),
           ],
         ),
-      ),
-      body: Column(
-        children: [
-          SizedBox(
-            height: 20,
-          ),
-          Container(
-            child: Text(
-              '$currentAddress',
-              style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w100,
-                  color: Color(0xff848484)),
-            ),
-          ),
-          SizedBox(
-            height: 30,
-          ),
-          topCardWidget(),
-          bottomCardWidget(),
-        ],
       ),
     );
   }
