@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:air_quality_app/login.dart';
 import 'package:flutter/material.dart';
+import 'package:air_quality_app/authentication.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -633,13 +634,40 @@ class _MyHomePageState extends State<MyHomePage> {
         child: ListView(
           children: [
             DrawerHeader(
-              child: Text(
-                userName,
-              ),
-            ),
+                decoration: BoxDecoration(
+                    image:
+                        DecorationImage(image: AssetImage("drawer-head.png"))),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      userName,
+                      style: TextStyle(fontSize: 25, color: Colors.white),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Text(
+                      FirebaseAuth.instance.currentUser.phoneNumber,
+                      style: TextStyle(fontSize: 15, color: Colors.white),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                  ],
+                )),
             ListTile(
-              title: Text(
-                "Map for AQI",
+              title: Row(
+                children: [
+                  Icon(Icons.map_rounded),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Text(
+                    "Map for AQI",
+                  ),
+                ],
               ),
               onTap: () {
                 Navigator.push(
@@ -649,6 +677,28 @@ class _MyHomePageState extends State<MyHomePage> {
                       GeoPoint(double.parse(lat), double.parse(long)),
                       crowdSourcedAQI,
                     ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              title: Row(
+                children: [
+                  Icon(Icons.logout),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Text(
+                    "Sign Out",
+                  ),
+                ],
+              ),
+              onTap: () {
+                Auth().signOut();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LoginPage(),
                   ),
                 );
               },
