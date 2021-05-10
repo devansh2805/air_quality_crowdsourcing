@@ -629,37 +629,19 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         backgroundColor: Color(0xff00C6BD),
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      drawer: Drawer(
+        child: ListView(
           children: [
-            SizedBox(
-              height: 20,
-            ),
-            Container(
+            DrawerHeader(
               child: Text(
-                '$currentAddress',
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w100,
-                  color: Color(0xff848484),
-                ),
+                userName,
               ),
             ),
-            SizedBox(
-              height: 30,
-            ),
-            topCardWidget(),
-            bottomCardWidget(),
-            SizedBox(
-              height: 30,
-            ),
-            TextButton(
-              style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(Color(0xff00C6BD)),
-                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+            ListTile(
+              title: Text(
+                "Map for AQI",
               ),
-              onPressed: () {
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -670,10 +652,31 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 );
               },
-              child: Text("Open Map"),
-            ),
+            )
           ],
         ),
+      ),
+      body: Column(
+        children: [
+          SizedBox(
+            height: 20,
+          ),
+          Container(
+            child: Text(
+              '$currentAddress',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w100,
+                color: Color(0xff848484),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 30,
+          ),
+          topCardWidget(),
+          bottomCardWidget(),
+        ],
       ),
     );
   }
