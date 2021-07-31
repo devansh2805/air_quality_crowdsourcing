@@ -635,8 +635,8 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             DrawerHeader(
                 decoration: BoxDecoration(
-                    image:
-                        DecorationImage(image: AssetImage("drawer-head.png"))),
+                    image: DecorationImage(
+                        image: AssetImage("nav-menu-header.jpg"))),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,
