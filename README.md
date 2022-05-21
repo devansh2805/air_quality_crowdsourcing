@@ -1,16 +1,2 @@
-# air_quality_app
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Air Quality App
+This andriod mobile app is integrated with a PM Sensor for measuring PM2.5 and PM10 with the help of Raspberry Pi. The idea is to crowdsource PM Data and show real time location specific Air Quality. The App also fetched City Level PM Data from Open Weather Map API 
